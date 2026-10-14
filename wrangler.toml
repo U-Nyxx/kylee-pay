@@ -1,0 +1,11 @@
+name = "kylee-pay"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+
+# KV untuk order (buat sekali via wrangler, lalu isi ID di sini):
+# [[kv_namespaces]]
+# binding = "KV"
+# id = "xxx"
+
+[vars]
+# MODE = "simulasi"

@@ -34,11 +34,28 @@ document.querySelectorAll(".method").forEach(function (m) {
   });
 });
 
+/* kylee.net pay — frontend.
+ * API_BASE: URL Worker backend. Kosongkan ("") = mode demo lokal.
+ * Contoh: "https://kylee-pay-api.u-nyxx.workers.dev" */
+var API_BASE = "";
+
 function buatPesanan() {
-  // TODO: ganti dengan fetch ke backend:
-  // return fetch("/api/order", {method:"POST", body: JSON.stringify({paket: dipilih.kode, metode: metode})}).then(r=>r.json());
-  var kode = "KYLEE-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-  return Promise.resolve({ bayar: metode + "-" + Date.now().toString().slice(-8), voucher: kode });
+  if (!API_BASE) {
+    var kode = "KYLEE-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+    return Promise.resolve({ bayar: metode + "-" + Date.now().toString().slice(-8), voucher: kode, orderId: null });
+  }
+  return fetch(API_BASE + "/api/order", {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ paket: dipilih.kode, metode: metode })
+  }).then(function (r) { return r.json(); });
+}
+
+function konfirmasiBayar(orderId) {
+  if (!API_BASE || !orderId) return Promise.resolve(null);
+  return fetch(API_BASE + "/api/confirm", {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ orderId: orderId })
+  }).then(function (r) { return r.json(); });
 }
 
 document.getElementById("btn-bayar").addEventListener("click", function () {
@@ -46,7 +63,19 @@ document.getElementById("btn-bayar").addEventListener("click", function () {
   document.getElementById("paycode").textContent = "Memproses…";
   buatPesanan().then(function (res) {
     document.getElementById("paycode").textContent = "Kode bayar (" + metode + "): " + res.bayar;
-    // DEMO: langsung tampilkan voucher. Produksi: tampilkan setelah webhook bayar lunas.
+    if (res.orderId) {
+      /* Mode backend: voucher muncul setelah konfirmasi (simulasi: langsung). */
+      document.getElementById("paycode").textContent += " — menunggu lunas…";
+      konfirmasiBayar(res.orderId).then(function (c) {
+        if (c && c.voucher) {
+          document.getElementById("voucher-code").textContent = c.voucher;
+          document.getElementById("sukses-box").classList.remove("hidden");
+          document.getElementById("sukses-box").scrollIntoView({ behavior: "smooth" });
+        }
+      });
+      return;
+    }
+    // DEMO lokal: langsung tampilkan voucher.
     document.getElementById("voucher-code").textContent = res.voucher;
     document.getElementById("sukses-box").classList.remove("hidden");
     document.getElementById("sukses-box").scrollIntoView({ behavior: "smooth" });

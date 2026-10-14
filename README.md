@@ -34,3 +34,44 @@ Untuk produksi, edit fungsi `buatPesanan()` di `app.js`:
 3. Webhook "lunas" → aktifkan user di hotspot → tampilkan kode voucher asli.
 
 Tanpa backend, kode yang tampil TIDAK bisa dipakai login.
+
+## Backend (Cloudflare Workers, mode simulasi)
+
+File `worker.js` + `wrangler.toml` sudah di repo ini (Pages mengabaikannya).
+
+```sh
+# install wrangler sekali saja
+npm i -g wrangler
+wrangler login
+
+# deploy dari folder repo
+cd kylee-pay
+wrangler deploy
+# → dapat URL mis. https://kylee-pay-api.u-nyxx.workers.dev
+```
+
+Lalu di `app.js` isi:
+```js
+var API_BASE = "https://kylee-pay-api.u-nyxx.workers.dev";
+```
+commit + push — web payment langsung pakai backend (masih simulasi).
+
+Endpoint: `GET /api/paket`, `POST /api/order`, `POST /api/confirm`.
+
+### Naik ke produksi (voucher beneran)
+
+1. **Router**: Worker memanggil RouterOS **v7 REST API**. Router kamu masih
+   v6 (6.49.4) → upgrade ke v7, aktifkan `IP → Services → api-ssl`,
+   buat user API khusus, lalu simpan sebagai secret:
+   ```sh
+   wrangler secret put ROUTER_URL   # mis. https://ip-publik:443
+   wrangler secret put ROUTER_USER
+   wrangler secret put ROUTER_PASS
+   ```
+2. **Gateway**: daftar Xendit/Midtrans, buat invoice di `/api/order`,
+   verifikasi webhook sebelum `/api/confirm` mengembalikan voucher.
+3. **KV** (opsional, biar order tidak hilang saat restart):
+   ```sh
+   wrangler kv:namespace create KV
+   ```
+   lalu isi `id` di `wrangler.toml` dan deploy ulang.
