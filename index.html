@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>kylee.net — Beli Voucher</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<main class="wrap">
+  <header class="hero">
+    <h1>kylee.net</h1>
+    <p>Beli voucher WiFi — bayar, terima kode, langsung online.</p>
+  </header>
+
+  <section class="grid" id="paket-list" aria-label="Pilih paket"></section>
+
+  <section class="card hidden" id="bayar-box" aria-label="Pembayaran">
+    <h2 id="bayar-title">Pembayaran</h2>
+    <p class="muted" id="bayar-detail"></p>
+    <div class="methods" role="radiogroup" aria-label="Metode bayar">
+      <button class="method is-active" data-m="QRIS">QRIS</button>
+      <button class="method" data-m="Transfer">Transfer</button>
+      <button class="method" data-m="E-Wallet">E-Wallet</button>
+    </div>
+    <div class="paycode" id="paycode">Tampilkan kode bayar setelah klik Bayar.</div>
+    <button class="btn" id="btn-bayar">Bayar Sekarang</button>
+    <button class="btn ghost" id="btn-batal">Batal</button>
+  </section>
+
+  <section class="card hidden" id="sukses-box" aria-label="Voucher Anda">
+    <h2>Voucher Anda</h2>
+    <div class="voucher" id="voucher-code">—</div>
+    <p class="muted">Simpan kode ini. Masukkan di halaman login hotspot.</p>
+    <button class="btn ghost" id="btn-lagi">Beli Lagi</button>
+  </section>
+
+  <footer class="foot">kylee.net &middot; titut.id</footer>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
