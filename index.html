@@ -3,10 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>kylee.net — Beli Voucher</title>
+<meta name="theme-color" content="#0b1014" />
+<title>kylee.net — Beli Voucher WiFi</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+<div class="aurora" aria-hidden="true"></div>
+<div class="blob blob--a" aria-hidden="true"></div>
+<div class="blob blob--b" aria-hidden="true"></div>
+
 <main class="wrap">
   <header class="hero">
     <h1>kylee.net</h1>
@@ -23,7 +28,7 @@
       <button class="method" data-m="Transfer">Transfer</button>
       <button class="method" data-m="E-Wallet">E-Wallet</button>
     </div>
-    <div class="paycode" id="paycode">Tampilkan kode bayar setelah klik Bayar.</div>
+    <div class="paycode" id="paycode">Klik Bayar untuk kode pembayaran.</div>
     <button class="btn" id="btn-bayar">Bayar Sekarang</button>
     <button class="btn ghost" id="btn-batal">Batal</button>
   </section>
@@ -31,7 +36,8 @@
   <section class="card hidden" id="sukses-box" aria-label="Voucher Anda">
     <h2>Voucher Anda</h2>
     <div class="voucher" id="voucher-code">—</div>
-    <p class="muted">Simpan kode ini. Masukkan di halaman login hotspot.</p>
+    <p class="muted">Simpan kode ini, masukkan di halaman login hotspot.</p>
+    <a class="btn ghost" id="btn-login" href="http://titut.id">Ke Halaman Login</a>
     <button class="btn ghost" id="btn-lagi">Beli Lagi</button>
   </section>
 
