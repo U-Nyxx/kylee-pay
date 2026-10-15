@@ -39,6 +39,15 @@ document.querySelectorAll(".method").forEach(function (m) {
  * Contoh: "https://kylee-pay-api.u-nyxx.workers.dev" */
 var API_BASE = "";
 
+/* ================= KONFIGURASI ADMIN (WAJIB DIISI) =================
+ * ADMIN_WA  : nomor WhatsApp admin, format internasional TANPA +.
+ *             Contoh: "6281234567890"
+ * PAY_INFO  : instruksi bayar yang tampil ke pembeli.
+ *             Contoh: "Transfer Rp X ke DANA 0812-3456-7890 a.n. Kylee"
+ * ==================================================================== */
+var ADMIN_WA = "";
+var PAY_INFO = "Bayar sesuai nominal, lalu kirim bukti via WhatsApp.";
+
 var demoOrder = null;
 
 function buatPesanan() {
@@ -97,31 +106,43 @@ document.getElementById("btn-bayar").addEventListener("click", function () {
   document.getElementById("paycode").textContent = "Memproses…";
   buatPesanan().then(function (res) {
     orderAktif = res.orderId;
-    document.getElementById("paycode").textContent = "Kode bayar (" + metode + "): " + res.bayar;
-    /* Tahap 1 selesai: voucher BELUM ada. User harus bayar dulu. */
-    document.getElementById("btn-bayar").classList.add("hidden");
-    document.getElementById("btn-lunas").classList.remove("hidden");
-  });
-});
-document.getElementById("btn-lunas").addEventListener("click", function () {
-  if (!orderAktif) return;
-  document.getElementById("paycode").textContent = "Memverifikasi pembayaran…";
-  konfirmasiBayar(orderAktif).then(function (c) {
-    if (c && c.voucher) {
-      tampilkanVoucher(c.voucher, c.simulasi !== false);
-      orderAktif = null;
-      document.getElementById("btn-lunas").classList.add("hidden");
-      document.getElementById("btn-bayar").classList.remove("hidden");
-    } else {
-      document.getElementById("paycode").textContent = "Belum lunas. Selesaikan pembayaran dulu.";
+    /* MODE MANUAL (tanpa backend): tampilkan instruksi bayar + tombol WA.
+     * Voucher TIDAK dibuat di sini — admin yang buatkan setelah cek bukti. */
+    if (!API_BASE) {
+      var info = PAY_INFO.replace("Rp X", rupiah(dipilih.harga));
+      document.getElementById("paycode").textContent = "Order ID: " + res.orderId;
+      var pi = document.getElementById("payinfo");
+      pi.textContent = info;
+      pi.classList.remove("hidden");
+      var teks = "Halo kylee.net, saya order " + dipilih.nama + " (" + rupiah(dipilih.harga) +
+        "). Order ID: " + res.orderId + ". Bukti bayar terlampir.";
+      var wa = document.getElementById("btn-wa");
+      wa.href = "https://wa.me/" + ADMIN_WA + "?text=" + encodeURIComponent(teks);
+      wa.classList.remove("hidden");
+      document.getElementById("btn-bayar").classList.add("hidden");
+      return;
     }
+    /* MODE BACKEND: rantai simulate -> confirm (DEV; produksi: webhook asli). */
+    document.getElementById("paycode").textContent = "Kode bayar (" + metode + "): " + res.bayar + " — menunggu lunas…";
+    document.getElementById("btn-bayar").classList.add("hidden");
+    konfirmasiBayar(orderAktif).then(function (c) {
+      if (c && c.voucher) {
+        tampilkanVoucher(c.voucher, c.simulasi !== false);
+        orderAktif = null;
+        document.getElementById("btn-bayar").classList.remove("hidden");
+      } else {
+        document.getElementById("paycode").textContent = "Belum lunas. Selesaikan pembayaran dulu.";
+        document.getElementById("btn-bayar").classList.remove("hidden");
+      }
+    });
   });
 });
 function resetBayar() {
   orderAktif = null;
   demoOrder = null;
   document.getElementById("bayar-box").classList.add("hidden");
-  document.getElementById("btn-lunas").classList.add("hidden");
+  document.getElementById("btn-wa").classList.add("hidden");
+  document.getElementById("payinfo").classList.add("hidden");
   document.getElementById("btn-bayar").classList.remove("hidden");
   document.getElementById("paycode").textContent = "Klik Bayar untuk kode pembayaran.";
 }

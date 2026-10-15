@@ -24,7 +24,8 @@ background:radial-gradient(60% 45% at 20% 8%,rgba(127,216,200,.13),transparent 7
 .method{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:transparent;color:inherit;cursor:pointer;transition:border-color .2s ease,color .2s ease,transform .15s ease}
 .method.is-active{border-color:#35e0c8;color:#35e0c8}
 .method:active{transform:scale(.96)}
-.paycode{background:rgba(0,0,0,.35);border:1px dashed rgba(255,255,255,.25);border-radius:10px;padding:14px;text-align:center;margin:12px 0;font-variant-numeric:tabular-nums;min-height:52px}
+.paycode,.payinfo{background:rgba(0,0,0,.35);border:1px dashed rgba(255,255,255,.25);border-radius:10px;padding:14px;text-align:center;margin:12px 0;font-variant-numeric:tabular-nums;min-height:52px}
+.payinfo{border-style:solid;border-color:rgba(53,224,200,.4)}
 .voucher{font-size:1.8rem;font-weight:800;letter-spacing:.12em;text-align:center;color:#35e0c8;background:rgba(0,0,0,.35);border-radius:12px;padding:16px;margin:12px 0}
 .btn{display:block;width:100%;padding:14px;border:0;border-radius:12px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#35e0c8,#8ff5e2);color:#06231f;margin-top:8px;text-decoration:none;text-align:center;transition:transform .18s cubic-bezier(.34,1.4,.64,1),filter .2s ease}
 .btn:hover{filter:brightness(1.06)}.btn:active{transform:scale(.97)}

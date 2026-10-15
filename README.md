@@ -35,6 +35,21 @@ Untuk produksi, edit fungsi `buatPesanan()` di `app.js`:
 
 Tanpa backend, kode yang tampil TIDAK bisa dipakai login.
 
+## Mode semi-otomatis (JALAN SEKARANG, tanpa backend/gateway)
+
+1. Isi di `app.js`: `ADMIN_WA` (nomor WA admin) + `PAY_INFO` (instruksi bayar).
+2. Pembeli: pilih paket → Bayar → terima Order ID + instruksi → klik
+   "Kirim Bukti via WhatsApp" (pesan otomatis terisi order + paket).
+3. Admin terima WA → cek bukti → buat user di WinBox
+   (IP → Hotspot → Users → `+`: Name = kode, Password = kode,
+   Profile = default/profil paket) → balas kode ke pembeli.
+4. Pembeli login di tab Voucher dengan kode itu.
+
+## Cek versi RouterOS
+
+WinBox bar bawah tertulis mis. `6.49.4 (stable)`, atau
+System → Resources, atau Terminal: `/system resource print`.
+
 ## Backend (Cloudflare Workers, mode simulasi)
 
 File `worker.js` + `wrangler.toml` sudah di repo ini (Pages mengabaikannya).
