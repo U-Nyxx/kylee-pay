@@ -94,12 +94,28 @@ export default {
       var c = await req.json().catch(function () { return {}; });
       var o = await s.get(c.orderId);
       if (!o) return json({ error: "order tidak ditemukan" }, 404);
-      /* SIMULASI: anggap lunas. Produksi: verifikasi webhook gateway dulu. */
+      /* Voucher HANYA keluar kalau order sudah lunas. Tidak ada jalan pintas. */
+      if (!o.lunas) return json({ error: "belum lunas", voucher: null }, 402);
+      if (o.voucher) return json({ voucher: o.voucher, userDibuat: o.userDibuat, simulasi: true });
       var voucher = rnd(6);
-      o.lunas = true; o.voucher = voucher;
-      await s.put(c.orderId, o);
+      o.voucher = voucher;
       var res = await buatUserHotspot(env, voucher, PAKET[o.paket]);
+      o.userDibuat = res.ok;
+      await s.put(c.orderId, o);
       return json({ voucher: voucher, userDibuat: res.ok, simulasi: res.simulasi });
+    }
+
+    /* DEV ONLY: simulasi callback gateway. Produksi: HAPUS endpoint ini,
+     * ganti webhook asli gateway (verifikasi signature) yang set lunas=true.
+     * Matikan via ALLOW_SIMULATE=0 di wrangler.toml. */
+    if (url.pathname === "/api/webhook-simulate" && req.method === "POST") {
+      if ((env.ALLOW_SIMULATE || "1") === "0") return json({ error: "simulasi dimatikan" }, 403);
+      var w = await req.json().catch(function () { return {}; });
+      var ow = await s.get(w.orderId);
+      if (!ow) return json({ error: "order tidak ditemukan" }, 404);
+      ow.lunas = true;
+      await s.put(w.orderId, ow);
+      return json({ ok: true, simulasi: true });
     }
 
     return json({ error: "not found" }, 404);

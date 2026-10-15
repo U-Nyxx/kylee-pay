@@ -39,10 +39,17 @@ document.querySelectorAll(".method").forEach(function (m) {
  * Contoh: "https://kylee-pay-api.u-nyxx.workers.dev" */
 var API_BASE = "";
 
+var demoOrder = null;
+
 function buatPesanan() {
   if (!API_BASE) {
-    var kode = "KYLEE-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-    return Promise.resolve({ bayar: metode + "-" + Date.now().toString().slice(-8), voucher: kode, orderId: null });
+    /* DEMO: order hanya keluarkan kode bayar. Voucher TIDAK dibuat di sini. */
+    demoOrder = { paket: dipilih.kode, metode: metode };
+    var oid = "DEMO-" + Date.now().toString(36).toUpperCase();
+    return Promise.resolve({
+      bayar: metode + "-" + Date.now().toString().slice(-8),
+      orderId: oid
+    });
   }
   return fetch(API_BASE + "/api/order", {
     method: "POST", headers: { "content-type": "application/json" },
@@ -50,40 +57,75 @@ function buatPesanan() {
   }).then(function (r) { return r.json(); });
 }
 
+function kodeVoucherAcak() {
+  return "KYLEE-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
 function konfirmasiBayar(orderId) {
-  if (!API_BASE || !orderId) return Promise.resolve(null);
-  return fetch(API_BASE + "/api/confirm", {
+  if (!API_BASE || !orderId) {
+    /* DEMO: voucher dibuat SEKARANG (saat user klik "Saya Sudah Bayar"),
+     * bukan saat order. Tidak pernah ada sebelum tahap ini. */
+    if (!demoOrder) return Promise.resolve(null);
+    demoOrder = null;
+    return Promise.resolve({ voucher: kodeVoucherAcak(), simulasi: true, userDibuat: false });
+  }
+  /* Backend: tandai simulasi-lunas dulu (DEV), lalu minta voucher. */
+  return fetch(API_BASE + "/api/webhook-simulate", {
     method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ orderId: orderId })
+  }).then(function () {
+    return fetch(API_BASE + "/api/confirm", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ orderId: orderId })
+    });
   }).then(function (r) { return r.json(); });
 }
+
+function tampilkanVoucher(voucher, simulasi) {
+  document.getElementById("voucher-code").textContent = voucher;
+  document.getElementById("voucher-note").textContent = simulasi
+    ? "Mode simulasi — kode ini belum aktif di hotspot."
+    : "Kode aktif. Masukkan di halaman login hotspot.";
+  document.getElementById("sukses-box").classList.remove("hidden");
+  document.getElementById("sukses-box").scrollIntoView({ behavior: "smooth" });
+}
+
+var orderAktif = null;
 
 document.getElementById("btn-bayar").addEventListener("click", function () {
   if (!dipilih) return;
   document.getElementById("paycode").textContent = "Memproses…";
   buatPesanan().then(function (res) {
+    orderAktif = res.orderId;
     document.getElementById("paycode").textContent = "Kode bayar (" + metode + "): " + res.bayar;
-    if (res.orderId) {
-      /* Mode backend: voucher muncul setelah konfirmasi (simulasi: langsung). */
-      document.getElementById("paycode").textContent += " — menunggu lunas…";
-      konfirmasiBayar(res.orderId).then(function (c) {
-        if (c && c.voucher) {
-          document.getElementById("voucher-code").textContent = c.voucher;
-          document.getElementById("sukses-box").classList.remove("hidden");
-          document.getElementById("sukses-box").scrollIntoView({ behavior: "smooth" });
-        }
-      });
-      return;
-    }
-    // DEMO lokal: langsung tampilkan voucher.
-    document.getElementById("voucher-code").textContent = res.voucher;
-    document.getElementById("sukses-box").classList.remove("hidden");
-    document.getElementById("sukses-box").scrollIntoView({ behavior: "smooth" });
+    /* Tahap 1 selesai: voucher BELUM ada. User harus bayar dulu. */
+    document.getElementById("btn-bayar").classList.add("hidden");
+    document.getElementById("btn-lunas").classList.remove("hidden");
   });
 });
-document.getElementById("btn-batal").addEventListener("click", function () {
-  document.getElementById("bayar-box").classList.add("hidden");
+document.getElementById("btn-lunas").addEventListener("click", function () {
+  if (!orderAktif) return;
+  document.getElementById("paycode").textContent = "Memverifikasi pembayaran…";
+  konfirmasiBayar(orderAktif).then(function (c) {
+    if (c && c.voucher) {
+      tampilkanVoucher(c.voucher, c.simulasi !== false);
+      orderAktif = null;
+      document.getElementById("btn-lunas").classList.add("hidden");
+      document.getElementById("btn-bayar").classList.remove("hidden");
+    } else {
+      document.getElementById("paycode").textContent = "Belum lunas. Selesaikan pembayaran dulu.";
+    }
+  });
 });
+function resetBayar() {
+  orderAktif = null;
+  demoOrder = null;
+  document.getElementById("bayar-box").classList.add("hidden");
+  document.getElementById("btn-lunas").classList.add("hidden");
+  document.getElementById("btn-bayar").classList.remove("hidden");
+  document.getElementById("paycode").textContent = "Klik Bayar untuk kode pembayaran.";
+}
+document.getElementById("btn-batal").addEventListener("click", resetBayar);
 document.getElementById("btn-lagi").addEventListener("click", function () {
   document.getElementById("sukses-box").classList.add("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });

@@ -8,4 +8,5 @@ compatibility_date = "2026-01-01"
 # id = "xxx"
 
 [vars]
-# MODE = "simulasi"
+# ALLOW_SIMULATE = "1" — biarkan "1" untuk demo. Produksi: "0" + webhook gateway asli.
+ALLOW_SIMULATE = "1"
